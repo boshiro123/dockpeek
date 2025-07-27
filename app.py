@@ -379,6 +379,125 @@ def index():
 def data():
     return jsonify(get_all_data())
 
+# === Container Management Routes ===
+
+@app.route("/container/<server_name>/<container_name>/start", methods=["POST"])
+@login_required
+def start_container(server_name, container_name):
+    """Start a container on specified server"""
+    try:
+        servers = discover_docker_clients()
+        target_server = None
+        
+        for server in servers:
+            if server["name"] == server_name and server["status"] == "active":
+                target_server = server
+                break
+        
+        if not target_server:
+            return jsonify({"success": False, "error": f"Server '{server_name}' not found or inactive"}), 404
+        
+        client = target_server["client"]
+        try:
+            container = client.containers.get(container_name)
+            container.start()
+            return jsonify({"success": True, "message": f"Container '{container_name}' started successfully"})
+        except docker.errors.NotFound:
+            return jsonify({"success": False, "error": f"Container '{container_name}' not found"}), 404
+        except docker.errors.APIError as e:
+            return jsonify({"success": False, "error": f"Docker API error: {str(e)}"}), 400
+            
+    except Exception as e:
+        return jsonify({"success": False, "error": f"Unexpected error: {str(e)}"}), 500
+
+@app.route("/container/<server_name>/<container_name>/stop", methods=["POST"])
+@login_required
+def stop_container(server_name, container_name):
+    """Stop a container on specified server"""
+    try:
+        servers = discover_docker_clients()
+        target_server = None
+        
+        for server in servers:
+            if server["name"] == server_name and server["status"] == "active":
+                target_server = server
+                break
+        
+        if not target_server:
+            return jsonify({"success": False, "error": f"Server '{server_name}' not found or inactive"}), 404
+        
+        client = target_server["client"]
+        try:
+            container = client.containers.get(container_name)
+            container.stop()
+            return jsonify({"success": True, "message": f"Container '{container_name}' stopped successfully"})
+        except docker.errors.NotFound:
+            return jsonify({"success": False, "error": f"Container '{container_name}' not found"}), 404
+        except docker.errors.APIError as e:
+            return jsonify({"success": False, "error": f"Docker API error: {str(e)}"}), 400
+            
+    except Exception as e:
+        return jsonify({"success": False, "error": f"Unexpected error: {str(e)}"}), 500
+
+@app.route("/container/<server_name>/<container_name>/restart", methods=["POST"])
+@login_required
+def restart_container(server_name, container_name):
+    """Restart a container on specified server"""
+    try:
+        servers = discover_docker_clients()
+        target_server = None
+        
+        for server in servers:
+            if server["name"] == server_name and server["status"] == "active":
+                target_server = server
+                break
+        
+        if not target_server:
+            return jsonify({"success": False, "error": f"Server '{server_name}' not found or inactive"}), 404
+        
+        client = target_server["client"]
+        try:
+            container = client.containers.get(container_name)
+            container.restart()
+            return jsonify({"success": True, "message": f"Container '{container_name}' restarted successfully"})
+        except docker.errors.NotFound:
+            return jsonify({"success": False, "error": f"Container '{container_name}' not found"}), 404
+        except docker.errors.APIError as e:
+            return jsonify({"success": False, "error": f"Docker API error: {str(e)}"}), 400
+            
+    except Exception as e:
+        return jsonify({"success": False, "error": f"Unexpected error: {str(e)}"}), 500
+
+@app.route("/container/<server_name>/<container_name>/remove", methods=["POST"])
+@login_required
+def remove_container(server_name, container_name):
+    """Remove a container on specified server"""
+    try:
+        servers = discover_docker_clients()
+        target_server = None
+        
+        for server in servers:
+            if server["name"] == server_name and server["status"] == "active":
+                target_server = server
+                break
+        
+        if not target_server:
+            return jsonify({"success": False, "error": f"Server '{server_name}' not found or inactive"}), 404
+        
+        client = target_server["client"]
+        try:
+            container = client.containers.get(container_name)
+            # Force remove the container (even if running)
+            container.remove(force=True)
+            return jsonify({"success": True, "message": f"Container '{container_name}' removed successfully"})
+        except docker.errors.NotFound:
+            return jsonify({"success": False, "error": f"Container '{container_name}' not found"}), 404
+        except docker.errors.APIError as e:
+            return jsonify({"success": False, "error": f"Docker API error: {str(e)}"}), 400
+            
+    except Exception as e:
+        return jsonify({"success": False, "error": f"Unexpected error: {str(e)}"}), 500
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     error = None
