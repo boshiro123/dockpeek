@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dockpeek</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/static/logo.svg" />
+  <link rel="stylesheet" href="/static/css/styles.css" />
+</head>
+
+<body class="p-6">
+  <div class="container mx-auto bg-white rounded-lg shadow-xl p-8">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="logo-title text-3xl font-bold">dockpeek</h1>
+      <div class="flex space-x-4 items-center text-sm controls-container">
+        <a href="https://github.com/dockpeek/dockpeek" target="_blank" class="github no-underline">
+          GitHub
+        </a>
+        <button id="refresh-button" title="Refresh Data"
+          class="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              d="M8.54636 19.7673C10.9455 20.8316 13.803 20.7738 16.2499 19.361C20.3154 17.0138 21.7084 11.8153 19.3612 7.74983L19.1112 7.31682M4.63826 16.25C2.29105 12.1845 3.68399 6.98595 7.74948 4.63874C10.1965 3.22597 13.0539 3.16816 15.4531 4.23253M2.49316 16.3336L5.22521 17.0657L5.95727 14.3336M18.0424 9.66565L18.7744 6.9336L21.5065 7.66565"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        <button id="theme-switcher" title="Switch Theme"
+          class="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+          <span id="theme-icon"> </span>
+        </button>
+        <button id="export-json-button"
+          class="flex items-center space-x-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path d="M4 15V18H20V15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M12 14L12 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M12 14L15 11.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M12 14L9 11.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span>Export</span>
+        </button>
+        <a href="/logout" id="logout-button"
+          class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75 text-center">
+          Logout
+        </a>
+      </div>
+    </div>
+
+    <div class="mb-6">
+      <input type="text" id="search-input" placeholder="Search by name, image, or port..."
+        class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+    </div>
+
+    <div id="server-filter-container" class="mb-4 flex flex-wrap gap-2"></div>
+
+    <div id="container-table-wrapper" class="overflow-x-auto rounded-lg overflow-hidden">
+      <table id="main-table" class="min-w-full bg-white border border-gray-200">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 sortable-header"
+              data-sort-column="name">
+              Container
+            </th>
+            <th
+              class="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 sortable-header server-column"
+              data-sort-column="server">
+              Server
+            </th>
+            <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 sortable-header"
+              data-sort-column="ports">
+              Ports
+            </th>
+            <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 sortable-header"
+              data-sort-column="image">
+              Image
+            </th>
+            <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 sortable-header"
+              data-sort-column="status">
+              Status
+            </th>
+          </tr>
+        </thead>
+        <tbody id="container-rows">
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <template id="container-row-template">
+    <tr class="hover:bg-gray-50 transition duration-150 ease-in-out">
+      <td class="data-content-name py-3 px-4 border-b border-gray-200 font-bold" data-content="name">
+      </td>
+      <td class="py-3 px-4 border-b border-gray-200 server-column" data-content="server">
+      </td>
+      <td class="py-3 px-4 border-b border-gray-200" data-content="ports">
+      </td>
+      <td class="py-3 px-4 border-b border-gray-200 table-cell-image">
+        <code class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm" data-content="image"></code>
+      </td>
+      <td class="py-3 px-4 border-b border-gray-200 table-cell-status" data-content="status">
+      </td>
+    </tr>
+  </template>
+
+  <div id="confirmation-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h2 id="modal-title" class="text-xl font-bold mb-4 text-gray-900">Confirmation</h2>
+      <p id="modal-message" class="text-gray-600 mb-6">Are you sure?</p>
+      <div class="flex justify-center space-x-4">
+        <button id="modal-cancel-button"
+          class="px-6 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">Cancel</button>
+        <button id="modal-confirm-button"
+          class="px-6 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+
+</html>

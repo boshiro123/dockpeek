@@ -1,0 +1,55 @@
+
+.build/
+.Releases/
+.dockerignore
+
+# === Python backend ===
+__pycache__/
+*.py[cod]
+*.egg-info/
+env/
+venv/
+.Python
+pip-log.txt
+*.sqlite3
+
+# === Node/Frontend ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+build/
+.cache/
+
+# === System/IDE ===
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+*.tmp
+*.log
+
+# === Docker/DevOps ===
+*.env
+.env.*
+*.pem
+*.key
+docker-compose.override.yml
+docker-compose-dev.yml
+
+# === Tests ===
+.coverage
+.pytest_cache/
+htmlcov/
+coverage.xml
+junit.xml
+
+# === Misc ===
+*.local
+*.lock
+*.tar.gz
+*.zip

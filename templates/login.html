@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dockpeek Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+        }
+
+        .login-box {
+            background-color: #161b22;
+        }
+
+        .login-box input {
+            background-color: #0d1117;
+            border-color: #30363d;
+            color: #c9d1d9;
+        }
+
+        .login-box input:focus {
+            outline: none;
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
+        }
+
+        .login-box label {
+            color: #8b949e;
+        }
+
+        .login-box button {
+            background-color: #238636;
+        }
+
+        .login-box button:hover {
+            background-color: #2ea043;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center">
+    <div class="login-box shadow-xl rounded-lg p-8 max-w-md w-full">
+        <div class="flex justify-center mb-6">
+            <img src="/static/logo_2.svg" alt="SFG Logo" class="w-20 h-20 mb-6">
+        </div>
+        <h2 class="text-2xl font-bold text-center mb-6">Log in to Dockpeek</h2>
+        <form method="POST" action="/login">
+            {% if error %}
+            <p class="text-red-500 text-center mb-4">{{ error }}</p>
+            {% endif %}
+            <div class="mb-4">
+                <label for="username" class="block text-sm font-medium mb-1">Username</label>
+                <input type="text" id="username" name="username" required class="w-full p-3 border rounded-lg">
+            </div>
+            <div class="mb-6">
+                <label for="password" class="block text-sm font-medium mb-1">Password</label>
+                <input type="password" id="password" name="password" required class="w-full p-3 border rounded-lg">
+            </div>
+            <button type="submit"
+                class="w-full text-white py-3 rounded-lg transition duration-150 ease-in-out">Login</button>
+        </form>
+    </div>
+</body>
+
+</html>
