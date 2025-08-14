@@ -90,6 +90,13 @@
             </svg>
             <span>Export</span>
           </button>
+          <button
+            id="group-toggle"
+            title="Group by Compose project"
+            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 text-center"
+          >
+            Group by project
+          </button>
           <a
             href="/logout"
             id="logout-button"
@@ -211,6 +218,12 @@
               🔄
             </button>
             <button
+              class="action-btn bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs font-medium transition duration-150 logs-btn"
+              title="View Logs"
+            >
+              📜
+            </button>
+            <button
               class="action-btn remove-btn bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs font-medium transition duration-150"
               title="Remove Container"
               data-action="remove"
@@ -242,6 +255,47 @@
             Confirm
           </button>
         </div>
+      </div>
+    </div>
+
+    <div id="logs-modal" class="modal-overlay hidden">
+      <div class="modal-content" style="max-width: 800px; width: 95%">
+        <h2 class="text-xl font-bold mb-4 text-gray-900">Container Logs</h2>
+        <div class="flex items-center justify-between mb-3">
+          <div class="space-x-2">
+            <label for="logs-tail" class="text-sm text-gray-600">Tail:</label>
+            <select id="logs-tail" class="p-2 border rounded">
+              <option value="200">200</option>
+              <option value="500">500</option>
+              <option value="1000">1000</option>
+            </select>
+          </div>
+          <div class="space-x-2">
+            <button
+              id="logs-refresh"
+              class="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Refresh
+            </button>
+            <button
+              id="logs-copy"
+              class="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Copy
+            </button>
+            <button
+              id="logs-close"
+              class="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+        <pre
+          id="logs-content"
+          class="p-3 bg-gray-100 border rounded overflow-auto"
+          style="max-height: 60vh; white-space: pre-wrap"
+        ></pre>
       </div>
     </div>
 

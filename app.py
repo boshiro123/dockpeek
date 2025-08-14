@@ -333,12 +333,23 @@ def get_all_data():
                                     'link': link
                                 })
 
+                    # Compose labels (grouping support)
+                    labels = {}
+                    try:
+                        labels = container.attrs.get('Config', {}).get('Labels', {}) or {}
+                    except Exception:
+                        labels = {}
+                    compose_project = labels.get('com.docker.compose.project', '')
+                    compose_service = labels.get('com.docker.compose.service', '')
+
                     all_container_data.append({
                         'server': server_name,
                         'name': container.name,
                         'status': container.status,
                         'image': image_name,
-                        'ports': port_map
+                        'ports': port_map,
+                        'compose_project': compose_project,
+                        'compose_service': compose_service,
                     })
                     
                 except Exception as container_error:
@@ -350,7 +361,9 @@ def get_all_data():
                         'name': getattr(container, 'name', 'unknown'),
                         'status': getattr(container, 'status', 'unknown'),
                         'image': 'error-loading',
-                        'ports': []
+                        'ports': [],
+                        'compose_project': '',
+                        'compose_service': '',
                     })
                     
         except Exception as e:
@@ -364,6 +377,37 @@ def get_all_data():
 
     return {"servers": server_list_for_json, "containers": all_container_data}
 
+
+# === Container Logs Route ===
+@app.route("/container/<server_name>/<container_name>/logs", methods=["GET"])
+@login_required
+def get_container_logs(server_name, container_name):
+    """Return recent logs for a container on a specified server"""
+    try:
+        tail = request.args.get("tail", default=200, type=int)
+        timestamps = request.args.get("timestamps", default=True, type=lambda v: str(v).lower() == 'true')
+        since = request.args.get("since", default=None, type=int)
+
+        servers = discover_docker_clients()
+        target_server = next((s for s in servers if s["name"] == server_name and s["status"] == "active"), None)
+        if not target_server:
+            return jsonify({"success": False, "error": f"Server '{server_name}' not found or inactive"}), 404
+
+        client = target_server["client"]
+        try:
+            container = client.containers.get(container_name)
+            logs = container.logs(tail=tail, timestamps=timestamps, since=since)
+            if isinstance(logs, (bytes, bytearray)):
+                logs_text = logs.decode("utf-8", errors="replace")
+            else:
+                logs_text = str(logs)
+            return jsonify({"success": True, "logs": logs_text})
+        except docker.errors.NotFound:
+            return jsonify({"success": False, "error": f"Container '{container_name}' not found"}), 404
+        except docker.errors.APIError as e:
+            return jsonify({"success": False, "error": f"Docker API error: {str(e)}"}), 400
+    except Exception as e:
+        return jsonify({"success": False, "error": f"Unexpected error: {str(e)}"}), 500
 
 
 # === Routes ===

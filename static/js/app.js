@@ -5,6 +5,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentSortColumn = "name"
   let currentSortDirection = "asc"
   let currentServerFilter = "all"
+  let groupByProject = true
+  const collapsedGroups = new Set()
 
   const searchInput = document.getElementById("search-input")
   const containerRowsBody = document.getElementById("container-rows")
@@ -49,54 +51,133 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const fragment = document.createDocumentFragment()
-    for (const c of pageItems) {
-      const clone = rowTemplate.content.cloneNode(true)
 
-      clone.querySelector('[data-content="name"]').textContent = c.name
-      clone.querySelector('[data-content="server"]').textContent = c.server
-      clone.querySelector('[data-content="image"]').textContent = c.image
-
-      const statusCell = clone.querySelector('[data-content="status"]')
-      statusCell.textContent = c.status
-      statusCell.className = `py-3 px-4 border-b border-gray-200 table-cell-status ${
-        c.status === "running" ? "status-running" : "status-exited"
-      }`
-
-      const portsCell = clone.querySelector('[data-content="ports"]')
-      if (c.ports.length > 0) {
-        portsCell.innerHTML = c.ports
-          .map(
-            p =>
-              `<a href="${p.link}" target="_blank" class="badge text-bg-dark me-1 rounded">${p.host_port}</a> <small class="text-secondary">→ ${p.container_port}</small>`
-          )
-          .join("<br>")
-      } else {
-        portsCell.innerHTML = `<span class="status-none" style="padding-left: 15px;">none</span>`
+    if (groupByProject) {
+      const groups = new Map()
+      for (const c of pageItems) {
+        const project = c.compose_project || "Ungrouped"
+        const key = `${c.server}::${project}`
+        if (!groups.has(key))
+          groups.set(key, { project, server: c.server, items: [] })
+        groups.get(key).items.push(c)
       }
 
-      // Set data attributes for container management
-      const row = clone.querySelector("tr")
-      row.dataset.status = c.status
-      row.dataset.containerName = c.name
-      row.dataset.serverName = c.server
+      const totalColumns = mainTable.classList.contains("table-single-server")
+        ? 5
+        : 6
 
-      // Add event listeners for action buttons
-      const actionButtons = clone.querySelectorAll(".action-btn")
-      actionButtons.forEach(button => {
-        button.addEventListener("click", handleContainerAction)
+      for (const [key, group] of groups) {
+        const headerRow = document.createElement("tr")
+        headerRow.className = "group-header"
+        const td = document.createElement("td")
+        td.colSpan = totalColumns
+        td.className = "py-2 px-4 text-gray-700 font-semibold cursor-pointer"
+        const isCollapsed = collapsedGroups.has(key)
+        td.innerHTML = `${isCollapsed ? "📁" : "📂"} ${
+          group.project
+        } <span class="text-sm text-gray-400">(${group.server})</span>`
+        headerRow.addEventListener("click", () => {
+          if (collapsedGroups.has(key)) collapsedGroups.delete(key)
+          else collapsedGroups.add(key)
+          renderTable()
+        })
+        headerRow.appendChild(td)
+        fragment.appendChild(headerRow)
 
-        // Disable buttons based on container status
-        const action = button.dataset.action
-        if (
-          (action === "start" && c.status === "running") ||
-          (action === "stop" && c.status === "exited")
-        ) {
-          button.disabled = true
+        if (isCollapsed) continue
+
+        for (const c of group.items) {
+          const clone = rowTemplate.content.cloneNode(true)
+          clone.querySelector('[data-content="name"]').textContent = c.name
+          clone.querySelector('[data-content="server"]').textContent = c.server
+          clone.querySelector('[data-content="image"]').textContent = c.image
+          const statusCell = clone.querySelector('[data-content="status"]')
+          statusCell.textContent = c.status
+          statusCell.className = `py-3 px-4 border-b border-gray-200 table-cell-status ${
+            c.status === "running" ? "status-running" : "status-exited"
+          }`
+          const portsCell = clone.querySelector('[data-content="ports"]')
+          if (c.ports.length > 0) {
+            portsCell.innerHTML = c.ports
+              .map(
+                p =>
+                  `<a href="${p.link}" target="_blank" class="badge text-bg-dark me-1 rounded">${p.host_port}</a> <small class="text-secondary">→ ${p.container_port}</small>`
+              )
+              .join("<br>")
+          } else {
+            portsCell.innerHTML = `<span class="status-none" style="padding-left: 15px;">none</span>`
+          }
+          const row = clone.querySelector("tr")
+          row.dataset.status = c.status
+          row.dataset.containerName = c.name
+          row.dataset.serverName = c.server
+          const actionButtons = clone.querySelectorAll(".action-btn")
+          actionButtons.forEach(button => {
+            if (button.classList.contains("logs-btn")) {
+              button.addEventListener("click", () =>
+                openLogsModal(c.server, c.name)
+              )
+              return
+            }
+            button.addEventListener("click", handleContainerAction)
+            const action = button.dataset.action
+            if (
+              (action === "start" && c.status === "running") ||
+              (action === "stop" && c.status === "exited")
+            ) {
+              button.disabled = true
+            }
+          })
+          fragment.appendChild(clone)
         }
-      })
-
-      fragment.appendChild(clone)
+      }
+    } else {
+      for (const c of pageItems) {
+        const clone = rowTemplate.content.cloneNode(true)
+        clone.querySelector('[data-content="name"]').textContent = c.name
+        clone.querySelector('[data-content="server"]').textContent = c.server
+        clone.querySelector('[data-content="image"]').textContent = c.image
+        const statusCell = clone.querySelector('[data-content="status"]')
+        statusCell.textContent = c.status
+        statusCell.className = `py-3 px-4 border-b border-gray-200 table-cell-status ${
+          c.status === "running" ? "status-running" : "status-exited"
+        }`
+        const portsCell = clone.querySelector('[data-content="ports"]')
+        if (c.ports.length > 0) {
+          portsCell.innerHTML = c.ports
+            .map(
+              p =>
+                `<a href="${p.link}" target="_blank" class="badge text-bg-dark me-1 rounded">${p.host_port}</a> <small class="text-secondary">→ ${p.container_port}</small>`
+            )
+            .join("<br>")
+        } else {
+          portsCell.innerHTML = `<span class="status-none" style="padding-left: 15px;">none</span>`
+        }
+        const row = clone.querySelector("tr")
+        row.dataset.status = c.status
+        row.dataset.containerName = c.name
+        row.dataset.serverName = c.server
+        const actionButtons = clone.querySelectorAll(".action-btn")
+        actionButtons.forEach(button => {
+          if (button.classList.contains("logs-btn")) {
+            button.addEventListener("click", () =>
+              openLogsModal(c.server, c.name)
+            )
+            return
+          }
+          button.addEventListener("click", handleContainerAction)
+          const action = button.dataset.action
+          if (
+            (action === "start" && c.status === "running") ||
+            (action === "stop" && c.status === "exited")
+          ) {
+            button.disabled = true
+          }
+        })
+        fragment.appendChild(clone)
+      }
     }
+
     containerRowsBody.appendChild(fragment)
   }
 
@@ -493,6 +574,61 @@ document.addEventListener("DOMContentLoaded", () => {
       newStatus === "running" ? "status-running" : "status-exited"
     }`
   }
+
+  // Logs modal logic
+  const logsModal = document.getElementById("logs-modal")
+  const logsContent = document.getElementById("logs-content")
+  const logsTail = document.getElementById("logs-tail")
+  const logsRefresh = document.getElementById("logs-refresh")
+  const logsCopy = document.getElementById("logs-copy")
+  const logsClose = document.getElementById("logs-close")
+  let lastLogsContext = { server: null, container: null }
+
+  async function openLogsModal(server, container) {
+    lastLogsContext = { server, container }
+    logsModal.classList.remove("hidden")
+    await loadLogs()
+  }
+
+  async function loadLogs() {
+    if (!lastLogsContext.server || !lastLogsContext.container) return
+    const tail = parseInt(logsTail.value, 10) || 200
+    const url = `/container/${encodeURIComponent(
+      lastLogsContext.server
+    )}/${encodeURIComponent(lastLogsContext.container)}/logs?tail=${tail}`
+    logsContent.textContent = "Loading..."
+    try {
+      const resp = await fetch(url)
+      const data = await resp.json()
+      if (data.success) {
+        logsContent.textContent = data.logs || ""
+      } else {
+        logsContent.textContent = `Error: ${data.error}`
+      }
+    } catch (e) {
+      logsContent.textContent = `Error: ${e.message}`
+    }
+  }
+
+  logsRefresh.addEventListener("click", loadLogs)
+  logsTail.addEventListener("change", loadLogs)
+  logsCopy.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(logsContent.textContent || "")
+      showNotification("Logs copied to clipboard", "success")
+    } catch (e) {
+      showNotification("Failed to copy logs", "error")
+    }
+  })
+  logsClose.addEventListener("click", () => logsModal.classList.add("hidden"))
+
+  // Group toggle
+  const groupToggle = document.getElementById("group-toggle")
+  groupToggle.addEventListener("click", () => {
+    groupByProject = !groupByProject
+    groupToggle.textContent = groupByProject ? "Group by project" : "Ungroup"
+    renderTable()
+  })
 
   fetchContainerData()
 

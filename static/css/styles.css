@@ -551,3 +551,22 @@ tr[data-status="exited"] .stop-btn {
     font-size: 10px;
   }
 }
+
+/* Group header row */
+.group-header td {
+  background-color: #eef2f6; /* темнее, другой оттенок базового светлого */
+  color: #334155; /* slate-700 */
+}
+
+body.dark-mode .group-header td {
+  background-color: #0f172a; /* dark slate, не черный */
+  color: #94a3b8; /* slate-400 */
+}
+
+#logs-content {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: left;
+}
